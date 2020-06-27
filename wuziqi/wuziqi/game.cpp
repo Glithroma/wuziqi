@@ -26,10 +26,6 @@ Game::Game(int gameMode, mainMenu *p, QWidget *parent) :
     this->p=p;
     ui->setupUi(this);
 
-    //如果启用困难模式，将下面这行代码改为hardMode=true;
-    //警告：棋局复杂后，困难模式所需计算时间极长！！！
-    hardMode=false;
-
     setMouseTracking(true); //使mouseMoveEvent在鼠标左键没按下时也能追踪鼠标轨迹
     memset(board, 0, sizeof(board));
     setWindowTitle("五子棋");
@@ -273,48 +269,20 @@ bool Game::checkDraw(){
 void Game::AIAct(){
     int bestX, bestY, maxScore=0;
 
-    if(hardMode){
-        QVector<Point> neighborPoint;
-        int bestScore=INF;
-        Point bestPoint;
-        getNeighbor(neighborPoint);
-        if(neighborPoint.empty()){
-            bestX=bestY=8;
-            goto enda;
-        }
-        //test code
-        for(int i=0; i<neighborPoint.size(); i++){
-            Point temp=neighborPoint.last();
-            neighborPoint.pop_back();
-            board[temp.x][temp.y]=curColor;
-
-            int score=findBestPoint(neighborPoint, bestScore, oppositeColor(curColor), 3);
-            if(bestScore > score){
-                bestScore=score;
-                bestPoint=temp;
-            }
-
-            neighborPoint.push_front(temp);
-            board[temp.x][temp.y]=EMPTY;
-        }
-        bestX=bestPoint.x;
-        bestY=bestPoint.y;
-    }else{
-        for(int i=0; i<rowNum; i++){
-            for(int j=0; j<colNum; j++){
-                if(board[j][i] == EMPTY){
-                    int score=evaluate(j, i, curColor);
-                    if(score > maxScore){
-                        maxScore=score;
-                        bestX=j;
-                        bestY=i;
-                    }
+    for(int i=0; i<rowNum; i++){
+        for(int j=0; j<colNum; j++){
+            if(board[j][i] == EMPTY){
+                int score=evaluate(j, i, curColor);
+                if(score > maxScore){
+                    maxScore=score;
+                    bestX=j;
+                    bestY=i;
                 }
             }
         }
     }
 
-    enda:
+    //enda:
 
     repaint();
     board[bestX][bestY]=curColor;
@@ -349,6 +317,39 @@ void Game::getNeighbor(QVector<Point> &v){
 }
 
 int Game::findBestPoint(QVector<Point> neighborPoint, int beta, int color, int count){
+
+    {
+        //这部分代码粘贴到AIAct函数里就好
+
+        QVector<Point> neighborPoint;
+        int bestScore=INF;
+        Point bestPoint;
+        getNeighbor(neighborPoint);
+        if(neighborPoint.empty()){
+            //bestX=bestY=8;
+            //goto enda;
+        }
+        //test code
+        for(int i=0; i<neighborPoint.size(); i++){
+            Point temp=neighborPoint.last();
+            neighborPoint.pop_back();
+            board[temp.x][temp.y]=curColor;
+
+            int score=findBestPoint(neighborPoint, bestScore, oppositeColor(curColor), 3);
+            if(bestScore > score){
+                bestScore=score;
+                bestPoint=temp;
+            }
+
+            neighborPoint.push_front(temp);
+            board[temp.x][temp.y]=EMPTY;
+        }
+        //bestX=bestPoint.x;
+        //bestY=bestPoint.y;
+    }
+
+
+
     //如果到达底层
     if(count == 0){
         int maxScore=0;
